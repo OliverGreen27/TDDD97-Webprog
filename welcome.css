@@ -1,0 +1,18 @@
+.welcome {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 500px;
+	min-width: 600px;
+}
+
+.form-elements {
+	display: flex;
+	flex-direction: column;
+	margin-left: 10px;
+}
+
+.form-input {
+	display: flex;
+	justify-content: space-between;
+}
