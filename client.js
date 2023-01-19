@@ -1,3 +1,16 @@
+
+class SignUp {	
+	constructor(email, password, fname, lname, gender, city, country) {
+		this.email = email;
+		this.password = password;
+		this.firstname = fname;
+		this.familyname = lname;
+		this.gender = gender;
+		this.city = city;
+		this.country = country;
+	}
+}
+
 displayView = function() {
 	// the code required to display a view
 };
@@ -7,38 +20,95 @@ window.onload = function() {
 	// window alert() is not allowed to be used in your implementation.
 	//window.alert("Hello TDDD97!");
 	document.getElementById("pagecontent").innerHTML = document.getElementById("welcomeview").innerText;
-	var signupform = document.forms["signupform"]
+	var loginform = document.forms["loginform"];
+	var signupform = document.forms["signupform"];
 	signupform.addEventListener("submit", function(event) {
 		event.preventDefault();
-		inputValidation(event);
+		if(inputValidation("signupform")) {
+			var signupObject = new SignUp(signupform["email"].value,
+									signupform["password"].value,
+									signupform["fname"].value,
+									signupform["lname"].value,
+									signupform["gender"].value,
+									signupform["city"].value,
+									signupform["country"].value);
+			var message = serverstub.signUp(signupObject);
+			console.log(message);
+			if (!message.success) {
+				signupform["email"].value = "";
+				signupform["email"].setAttribute("placeholder", message.message);
+			} else {
+				document.getElementById("pagecontent").innerHTML = "";
+				document.getElementById("pagecontent").innerText = "";
+				document.getElementById("pagecontent").innerHTML = document.getElementById("profileview").innerText;
+			}
+		}
+	})
+	
+	loginform.addEventListener("submit", function(event) {
+		event.preventDefault();
+		if (inputValidation("loginform")) {
+			var message = serverstub.signIn(loginform["email"].value, loginform["password"].value);
+			console.log(message);
+			if(!message.success) {
+				loginform["email"].value = "";
+				loginform["password"].value = "";
+				loginform["email"].setAttribute("placeholder", message.message);
+			} else {
+				document.getElementById("pagecontent").innerHTML = "";
+				document.getElementById("pagecontent").innerText = "";
+				document.getElementById("pagecontent").innerHTML = document.getElementById("profileview").innerText;
+			}
+		}
+
 	})
 };
 
-inputValidation = function(event) {
-	let allInputs = document.forms["signupform"].elements;
-	for(elem in allInputs) {
-		if(element.type === "text" && element.value === "") {
-			console.log("hejejeheh");
-			return false;
-		}
+inputValidation = function(formID) {
+	var form = document.forms[formID];	
+	let allInputs = form.querySelectorAll("input");
+	var valid = true;
+	allInputs.forEach(function(elem) {
+		if(elem.type === "text" && elem.value === "") {
+			elem.setAttribute("placeholder", "Don't leave blank");
+			valid = false;
+		} })
+	if (!validateEmail(form)) {
+		valid = false;
 	}
-	let emailText = document.forms["loginform"]["email"].value;
-	if (!validateEmail(emailText)) {
+	valid = validatePassword(form, formID); 
+	return valid;
+}
+
+function validateEmail(form) {
+  var validRegex = /\w+@\w+\.\w+/
+  var email = form["email"];
+  if (!email.value.match(validRegex)) {
+	email.value = "";
+    email.setAttribute("placeholder", "Invalid email");
+    return false;
+  } 
+  return true;
+}
+
+function validatePassword(form, formID) {
+	if(formID == "signupform" && form["password"].value != form["password2"].value) {
+		form["password"].value = "";
+		form["password2"].value = "";
+		form["password"].setAttribute("placeholder", "Passwords must match");
+		form["password2"].setAttribute("placeholder", "Passwords must match");	
+		return false;	
+	}
+	if(formID == "signupform" && form["password"].value.length < 8) {
+		form["password"].value = "";
+		form["password2"].value = "";
+		form["password"].setAttribute("placeholder", "Password must be 8 characters or longer");
 		return false;
 	}
-
-
-}
-function validateEmail(input) {
-  var validRegex = /\w+@\w+\.\w+/
-  if (input.value.match(validRegex)) {
-    alert("Valid email address!");
-    document.form1.text1.focus();
-    return true;
-  } else {
-    alert("Invalid email address!");
-    document.form1.text1.focus();
-    return false;
-  }
-
+	if(formID == "loginform" && form["password"].value.length < 8) {
+		form["password"].value = "";
+		form["password"].setAttribute("placeholder", "Wrong password");
+		return false;
+	}
+	return true;
 }
