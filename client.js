@@ -19,6 +19,15 @@ window.onload = function() {
 	// You shall put your own custom code here.
 	// window alert() is not allowed to be used in your implementation.
 	//window.alert("Hello TDDD97!");
+	if (localStorage.getItem("logintoken") != null) {
+		loadProfileView();
+	} else {
+		loadWelcomeView();
+	}
+};
+
+loadWelcomeView = function() {
+
 	document.getElementById("pagecontent").innerHTML = document.getElementById("welcomeview").innerText;
 	var loginform = document.forms["loginform"];
 	var signupform = document.forms["signupform"];
@@ -41,10 +50,13 @@ window.onload = function() {
 				document.getElementById("pagecontent").innerHTML = "";
 				document.getElementById("pagecontent").innerText = "";
 				document.getElementById("pagecontent").innerHTML = document.getElementById("profileview").innerText;
+				localStorage.setItem("logintoken", message.data);
+				console.log(message.data);
 			}
 		}
 	})
-	
+		
+			
 	loginform.addEventListener("submit", function(event) {
 		event.preventDefault();
 		if (inputValidation("loginform")) {
@@ -58,11 +70,19 @@ window.onload = function() {
 				document.getElementById("pagecontent").innerHTML = "";
 				document.getElementById("pagecontent").innerText = "";
 				document.getElementById("pagecontent").innerHTML = document.getElementById("profileview").innerText;
+				localStorage.setItem("logintoken", message.data);
+				console.log(message.data);
 			}
 		}
-
 	})
-};
+
+}
+
+loadProfileView = function() {
+		console.log("cookie loaded");
+		console.log(localStorage.getItem("logintoken"));
+		document.getElementById("pagecontent").innerHTML = document.getElementById("profileview").innerText;
+}
 
 inputValidation = function(formID) {
 	var form = document.forms[formID];	
