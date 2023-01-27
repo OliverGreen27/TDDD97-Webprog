@@ -5,6 +5,10 @@
 	margin-top: 100px;
 }
 
+.welcome img {
+	mix-blend-mode: color-burn;
+}
+
 .form-elements {
 	display: flex;
 	flex-direction: column;
