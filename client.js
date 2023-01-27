@@ -82,6 +82,8 @@ loadProfileView = function() {
 		console.log("cookie loaded");
 		console.log(localStorage.getItem("logintoken"));
 		document.getElementById("pagecontent").innerHTML = document.getElementById("profileview").innerText;
+
+		document.getElementById("defaultOpen").click();
 }
 
 inputValidation = function(formID) {
@@ -154,6 +156,3 @@ function openTab(event, tabName) {
 	event.currentTarget.className += " active";
 
 }
-
-// Get the element with id="defaultOpen" and click on it
-document.getElementById("defaultOpen").click();
