@@ -113,6 +113,14 @@ loadProfileView = function() {
 			loadWelcomeView();
 		}
 	})
+
+    var userData = serverstub.getUserDataByToken(localStorage.getItem('logintoken')).data
+
+    // Change the information displayed on the homepage to the user credentials 
+    document.getElementById('home-username').innerText = userData.firstname + ' ' + userData.familyname;
+    document.getElementById('home-gender').innerText = userData.gender;
+    document.getElementById('home-location').innerText = userData.city + ', ' + userData.country;
+    document.getElementById('home-email').innerText = userData.email;
 }
 
 inputValidation = function(formID) {
