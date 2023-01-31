@@ -89,7 +89,6 @@ loadProfileView = function() {
 		event.preventDefault();
 		if (inputValidation("changepassform")) {
 			var message = serverstub.changePassword(localStorage.getItem("logintoken"), changepassform["oldpassword"].value, changepassform["password"].value);
-			console.log(message.message);
 			changepassform["oldpassword"].value = "";
 			changepassform["password"].value = "";
 			changepassform["password2"].value = "";
@@ -105,13 +104,12 @@ loadProfileView = function() {
 
 	document.getElementById("logoutbutton").addEventListener("click", function(event) {
 		var message = serverstub.signOut(localStorage.getItem("logintoken"));
-		console.log(message);
 		if(!message.success) {
 			document.getElementById("message1").innerText = message.message;
 		} else {
 			localStorage.removeItem("logintoken");
-			loadWelcomeView();
 		}
+		loadWelcomeView();
 	})
 }
 
