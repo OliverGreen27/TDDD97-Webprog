@@ -15,10 +15,6 @@ displayView = function() {
 	// the code required to display a view
 };
 window.onload = function() {
-	// code that is executed as the page is loaded.
-	// You shall put your own custom code here.
-	// window alert() is not allowed to be used in your implementation.
-	//window.alert("Hello TDDD97!");
 	if (localStorage.getItem("logintoken") != null) {
 		loadProfileView();
 	} else {
@@ -27,7 +23,8 @@ window.onload = function() {
 };
 
 loadWelcomeView = function() {
-
+	document.getElementById("pagecontent").innerHTML = "";
+	document.getElementById("pagecontent").innerText = "";
 	document.getElementById("pagecontent").innerHTML = document.getElementById("welcomeview").innerText;
 	var loginform = document.forms["loginform"];
 	var signupform = document.forms["signupform"];
@@ -47,11 +44,13 @@ loadWelcomeView = function() {
 				signupform["email"].value = "";
 				signupform["email"].setAttribute("placeholder", message.message);
 			} else {
-				document.getElementById("pagecontent").innerHTML = "";
-				document.getElementById("pagecontent").innerText = "";
-				document.getElementById("pagecontent").innerHTML = document.getElementById("profileview").innerText;
-				localStorage.setItem("logintoken", message.data);
-				console.log(message.data);
+				message = serverstub.signIn(signupform["email"].value, signupform["password"].value);
+				if(!message.success) {
+					signupform["email"].setAttribute("placeholder", message.message);
+				} else {
+					localStorage.setItem("logintoken", message.data);
+					loadProfileView();
+				}
 			}
 		}
 	})
@@ -67,11 +66,8 @@ loadWelcomeView = function() {
 				loginform["password"].value = "";
 				loginform["email"].setAttribute("placeholder", message.message);
 			} else {
-				document.getElementById("pagecontent").innerHTML = "";
-				document.getElementById("pagecontent").innerText = "";
-				document.getElementById("pagecontent").innerHTML = document.getElementById("profileview").innerText;
 				localStorage.setItem("logintoken", message.data);
-				console.log(message.data);
+				loadProfileView();
 			}
 		}
 	})
@@ -79,11 +75,44 @@ loadWelcomeView = function() {
 }
 
 loadProfileView = function() {
-		console.log("cookie loaded");
-		console.log(localStorage.getItem("logintoken"));
-		document.getElementById("pagecontent").innerHTML = document.getElementById("profileview").innerText;
+	console.log("cookie loaded");
+	console.log(localStorage.getItem("logintoken"));
+	document.getElementById("pagecontent").innerHTML = "";
+	document.getElementById("pagecontent").innerText = "";
+	document.getElementById("pagecontent").innerHTML = document.getElementById("profileview").innerText;
 
-		document.getElementById("defaultOpen").click();
+	document.getElementById("defaultOpen").click();
+
+
+	var changepassform = document.forms["changepassform"];
+	changepassform.addEventListener("submit", function(event) {
+		event.preventDefault();
+		if (inputValidation("changepassform")) {
+			var message = serverstub.changePassword(localStorage.getItem("logintoken"), changepassform["oldpassword"].value, changepassform["password"].value);
+			console.log(message.message);
+			changepassform["oldpassword"].value = "";
+			changepassform["password"].value = "";
+			changepassform["password2"].value = "";
+			var messageBox = document.getElementById("message2");
+			if(!message.success) {
+				messageBox.style.color = "red";
+			} else {
+				messageBox.style.color = "green";
+			}
+			messageBox.innerText = message.message;
+		}
+	})
+
+	document.getElementById("logoutbutton").addEventListener("click", function(event) {
+		var message = serverstub.signOut(localStorage.getItem("logintoken"));
+		console.log(message);
+		if(!message.success) {
+			document.getElementById("message1").innerText = message.message;
+		} else {
+			localStorage.removeItem("logintoken");
+			loadWelcomeView();
+		}
+	})
 }
 
 inputValidation = function(formID) {
@@ -95,7 +124,7 @@ inputValidation = function(formID) {
 			elem.setAttribute("placeholder", "Don't leave blank");
 			valid = false;
 		} })
-	if (!validateEmail(form)) {
+	if (form["email"] != null && !validateEmail(form)) {
 		valid = false;
 	}
 	valid = validatePassword(form, formID); 
@@ -103,25 +132,25 @@ inputValidation = function(formID) {
 }
 
 function validateEmail(form) {
-  var validRegex = /\w+@\w+\.\w+/
-  var email = form["email"];
-  if (!email.value.match(validRegex)) {
-	email.value = "";
-    email.setAttribute("placeholder", "Invalid email");
-    return false;
-  } 
-  return true;
+	var validRegex = /\w+@\w+\.\w+/
+	var email = form["email"];
+	if (!email.value.match(validRegex)) {
+		email.value = "";
+		email.setAttribute("placeholder", "Invalid email");
+		return false;
+	} 
+	return true;
 }
 
 function validatePassword(form, formID) {
-	if(formID == "signupform" && form["password"].value != form["password2"].value) {
+	if((formID == "signupform" || formID == "changepassform") && form["password"].value != form["password2"].value) {
 		form["password"].value = "";
 		form["password2"].value = "";
 		form["password"].setAttribute("placeholder", "Passwords must match");
 		form["password2"].setAttribute("placeholder", "Passwords must match");	
 		return false;	
 	}
-	if(formID == "signupform" && form["password"].value.length < 8) {
+	if((formID == "signupform" || formID == "changepassform") && form["password"].value.length < 8) {
 		form["password"].value = "";
 		form["password2"].value = "";
 		form["password"].setAttribute("placeholder", "Password must be 8 characters or longer");

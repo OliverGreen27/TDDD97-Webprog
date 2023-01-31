@@ -89,8 +89,28 @@
 			</div>
 
 			<div id="Account" class="tabcontent">
+				<button id="logoutbutton">Log out</button>
+				<div id="message1"></div>
 				<h3>Account</h3>
 				<p>Here you can change your account information</p>
+
+				<form id="changepassform">
+					<h2>Change password</h2>
+					<div class="form-input">
+						<label for="oldpassword">Old password</label>
+						<input type="password" id="oldpassword" name="oldpassword" size="18">
+					</div>
+					<div class="form-input">
+						<label for="password">New password</label>
+						<input type="password" id="password" name="password" size="18">
+					</div>
+					<div class="form-input">
+						<label for="password2">Confirm password</label>
+						<input type="password" id="password2" name="password2" size="18">
+					</div>
+					<input type="submit" value="Confirm change">
+					<div id="message2"></div>
+				</form>
 			</div>
 	</script>
 </head>

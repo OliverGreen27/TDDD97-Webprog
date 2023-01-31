@@ -167,8 +167,12 @@ var serverstub = (function() {
 
     changePassword: function(token, oldPassword, newPassword){
       syncStorage();
+      console.log(token);
       if (loggedInUsers[token] != null){
         var email = tokenToEmail(token);
+        console.log("sparade lösen");
+        console.log(users[email].password);
+        console.log(oldPassword);
         if (users[email].password == oldPassword){
           users[email].password = newPassword;
           persistUsers();
