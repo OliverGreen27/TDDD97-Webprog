@@ -61,7 +61,25 @@ input[type=text]:focus {
 /* Style the tab content */
 .tabcontent {
   display: none;
+  max-height: 100vh;
   padding: 6px 12px;
   border: 1px solid #ccc;
   border-top: none;
+}
+
+.user-data-elements {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	margin-left: 10px;
+}
+
+.data-field {
+	display: flex;
+	justify-content: left;
+}
+
+textarea {
+	overflow: hidden;
+	resize: none;
 }

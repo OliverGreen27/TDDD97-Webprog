@@ -82,8 +82,9 @@ loadProfileView = function() {
 	document.getElementById("pagecontent").innerHTML = document.getElementById("profileview").innerText;
 
 	document.getElementById("defaultOpen").click();
+	reloadBoard(document.getElementById("home-message-board"));
 
-
+	// Account page
 	var changepassform = document.forms["changepassform"];
 	changepassform.addEventListener("submit", function(event) {
 		event.preventDefault();
@@ -119,6 +120,114 @@ loadProfileView = function() {
     document.getElementById('home-gender').innerText = userData.gender;
     document.getElementById('home-location').innerText = userData.city + ', ' + userData.country;
     document.getElementById('home-email').innerText = userData.email;
+
+	var postmessageform = document.forms["board-text-form"];
+	postmessageform.addEventListener("submit", function(event) {
+		event.preventDefault();
+		postmessageform["comment"].value
+		var message = serverstub.postMessage(localStorage.getItem("logintoken"), postmessageform["comment"].value);
+		var messageBox = document.getElementById("message3");
+		if(!message.success) {
+			messageBox.innerText = "There was an error with sending your message.";
+			messageBox.style.color = "red";
+		} else {
+			messageBox.innerText = message.message;
+			messageBox.style.color = "green";
+		}
+	})
+
+	document.getElementById("reloadbutton").addEventListener("click", function(event) {
+		reloadBoard(document.getElementById("home-message-board"));
+	})
+
+	// Browse page
+	var searchform = document.forms["browse-search"];
+	searchform.addEventListener("submit", function(event) {
+		event.preventDefault();
+		loadBrowseProfile();
+	})
+	var searchinput = searchform["search-value"];
+	console.log(searchinput);
+	searchinput.addEventListener("input", function(event) {
+		document.getElementById("message5").innerText = "";
+		console.log("JDIFJAIOSDJPIJ");
+	})
+
+
+}
+
+loadBrowseProfile = function() {
+	var searchEmail = document.forms["browse-search"]["search-value"].value;
+    var message = serverstub.getUserDataByEmail(localStorage.getItem("logintoken"), searchEmail)
+	if(!message.success) {
+		document.getElementById("message5").innerText = message.message;
+		document.getElementById("message5").style.color = "red";	
+		return;
+	}
+	document.getElementById("message5").innerText = "";
+	
+	document.getElementById("browse-window").style.display = "block";
+
+	var userData = message.data;
+    // Change the information displayed on the browsepage to the user credentials 
+    document.getElementById('browse-username').innerText = userData.firstname + ' ' + userData.familyname;
+    document.getElementById('browse-gender').innerText = userData.gender;
+    document.getElementById('browse-location').innerText = userData.city + ', ' + userData.country;
+    document.getElementById('browse-email').innerText = userData.email;
+	var postmessageform = document.forms["browse-board-text-form"];
+	postmessageform.addEventListener("submit", function(event) {
+		event.preventDefault();
+		postmessageform["comment"].value
+		var message = serverstub.postMessage(localStorage.getItem("logintoken"), postmessageform["comment"].value, searchEmail);
+		var messageBox = document.getElementById("message4");
+		if(!message.success) {
+			messageBox.innerText = "There was an error with sending your message.";
+			messageBox.style.color = "red";
+		} else {
+			messageBox.innerText = message.message;
+			messageBox.style.color = "green";
+		}
+	})
+
+	document.getElementById("browse-reloadbutton").addEventListener("click", function(event) {
+		reloadBoard(document.getElementById("browse-message-board"), searchEmail);
+	})
+
+}
+
+reloadBoard = function(board, email=null) {
+
+	var boardBox = board;
+	boardBox.innerHTML = "";
+	boardBox.innerText = "";
+	var messageBoardData;
+	if(email != null) {
+		messageBoardData = serverstub.getUserMessagesByEmail(localStorage.getItem("logintoken"), email);
+	} else {
+		messageBoardData = serverstub.getUserMessagesByToken(localStorage.getItem("logintoken"));
+	}
+	console.log(messageBoardData.data);
+	console.log(boardBox);
+	for(var i = 0; i < messageBoardData.data.length; i++) {
+		var messageHTML = document.createElement('div');
+		var title = document.createElement('h2')
+		title.innerText = messageBoardData.data[i]["writer"];
+		messageHTML.appendChild(title);
+
+		var contentHTML = document.createElement('textarea');
+		contentHTML.setAttribute("readonly", "");
+		contentHTML.setAttribute("rows", "5");
+		contentHTML.setAttribute("max-rows", "5");
+		contentHTML.setAttribute("cols", "50");
+		contentHTML.innerText = messageBoardData.data[i]["content"];
+		messageHTML.appendChild(contentHTML);
+		messageHTML.appendChild(document.createElement('br'));
+			
+		boardBox.appendChild(messageHTML);
+		boardBox.style.backgroundColor = "white";
+		boardBox.style.overflowY= "scroll";
+		boardBox.style.maxHeight = "45vh";
+	}
 }
 
 inputValidation = function(formID) {

@@ -83,25 +83,63 @@
 
 				<div class="user-data-elements">
 					<div class="data-field">	
-						<label for="home-gender"></label>
 						<p id=home-gender></p>
 					</div>
 
 					<div class="data-field">	
-						<label for="home-location"></label>
 						<p id=home-location></p>
 					</div>
 
 					<div class="data-field">	
-						<label for="home-email"></label>
 						<p id=home-email></p>
 					</div>
 				</div>
+
+				<form id=board-text-form>	
+					<textarea rows="5" max-rows="5" cols="50" maxlength="250" name="comment" form="board-text-form"></textarea>
+					<input type="submit" value="Post message">
+				</form>
+				<div id="message3"></div>
+
+				<button id="reloadbutton">Reload board</button>
+				<div id="home-message-board">
+					
+				</div>
+				
 			</div>
 
 			<div id="Browse" class="tabcontent">
-				<h3>Browse</h3>
-				<p>Here you can browse very cool stuff.</p>
+				<form id="browse-search">
+					<input type="text" id="search-value">
+				</form>
+				<div id="message5"></div>
+				<div id="browse-window" style="display:none">
+					<h3 id=browse-username>Home</h3>
+
+					<div class="user-data-elements">
+						<div class="data-field">	
+							<p id=browse-gender></p>
+						</div>
+
+						<div class="data-field">	
+							<p id=browse-location></p>
+						</div>
+
+						<div class="data-field">	
+							<p id=browse-email></p>
+						</div>
+					</div>
+
+					<form id=browse-board-text-form>	
+						<textarea rows="5" max-rows="5" cols="50" maxlength="250" name="comment" form="browse-board-text-form"></textarea>
+						<input type="submit" value="Post message">
+					</form>
+					<div id="message4"></div>
+
+					<button id="browse-reloadbutton">Reload board</button>
+					<div id="browse-message-board">
+					</div>
+				</div>
 			</div>
 
 			<div id="Account" class="tabcontent">
