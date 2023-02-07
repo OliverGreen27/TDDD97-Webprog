@@ -133,6 +133,7 @@ loadProfileView = function() {
 		} else {
 			messageBox.innerText = message.message;
 			messageBox.style.color = "green";
+			reloadBoard(document.getElementById("home-message-board"));
 		}
 	})
 
@@ -186,9 +187,11 @@ loadBrowseProfile = function() {
 		} else {
 			messageBox.innerText = message.message;
 			messageBox.style.color = "green";
+			reloadBoard(document.getElementById("browse-message-board"), searchEmail);
 		}
 	})
 
+	reloadBoard(document.getElementById("browse-message-board"), searchEmail);
 	document.getElementById("browse-reloadbutton").addEventListener("click", function(event) {
 		reloadBoard(document.getElementById("browse-message-board"), searchEmail);
 	})
@@ -299,4 +302,7 @@ function openTab(event, tabName) {
 	document.getElementById(tabName).style.display = "block";
 	event.currentTarget.className += " active";
 
+	if(tabName === "Home") {
+		reloadBoard(document.getElementById("home-message-board"));
+	} 
 }
