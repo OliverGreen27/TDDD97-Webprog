@@ -49,7 +49,6 @@ loadWelcomeView = function() {
 			
 	loginform.addEventListener("submit", function(event) {
 		event.preventDefault();
-<<<<<<< HEAD
         var message = serverstub.signIn(loginform["email"].value, loginform["password"].value);
         console.log(message);
         if(!message.success) {
@@ -58,22 +57,8 @@ loadWelcomeView = function() {
             loginform["email"].setAttribute("placeholder", message.message);
         } else {
             localStorage.setItem("logintoken", message.data);
-            loadProfileView();
+            displayView();
         }
-=======
-		if (inputValidation("loginform")) {
-			var message = serverstub.signIn(loginform["email"].value, loginform["password"].value);
-			console.log(message);
-			if(!message.success) {
-				loginform["email"].value = "";
-				loginform["password"].value = "";
-				loginform["email"].setAttribute("placeholder", message.message);
-			} else {
-				localStorage.setItem("logintoken", message.data);
-				displayView();
-			}
-		}
->>>>>>> 4c58f2373c357a402d439c148abe89d13737eddd
 	})
 }
 
