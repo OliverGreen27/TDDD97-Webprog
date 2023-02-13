@@ -1,16 +1,4 @@
 
-class SignUp {	
-	constructor(email, password, fname, lname, gender, city, country) {
-		this.email = email;
-		this.password = password;
-		this.firstname = fname;
-		this.familyname = lname;
-		this.gender = gender;
-		this.city = city;
-		this.country = country;
-	}
-}
-
 displayView = function() {
 	// the code required to display a view
 	if (localStorage.getItem("logintoken") != null) {
@@ -32,13 +20,15 @@ loadWelcomeView = function() {
 	signupform.addEventListener("submit", function(event) {
 		event.preventDefault();
 		if(inputValidation("signupform")) {
-			var signupObject = new SignUp(signupform["email"].value,
-									signupform["password"].value,
-									signupform["fname"].value,
-									signupform["lname"].value,
-									signupform["gender"].value,
-									signupform["city"].value,
-									signupform["country"].value);
+			var signupObject = {}
+			signupObject["email"] = signupform["email"].value;
+			signupObject["password"] = signupform["password"].value;
+			signupObject["firstname"] = signupform["fname"].value;
+			signupObject["familyname"] = signupform["lname"].value;
+			signupObject["gender"] = signupform["gender"].value;
+			signupObject["city"] = signupform["city"].value;
+			signupObject["country"] = signupform["country"].value;
+
 			var message = serverstub.signUp(signupObject);
 			console.log(message);
 			if (!message.success) {
