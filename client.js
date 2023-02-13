@@ -13,13 +13,14 @@ class SignUp {
 
 displayView = function() {
 	// the code required to display a view
-};
-window.onload = function() {
 	if (localStorage.getItem("logintoken") != null) {
 		loadProfileView();
 	} else {
 		loadWelcomeView();
 	}
+};
+window.onload = function() {
+	displayView();
 };
 
 loadWelcomeView = function() {
@@ -49,7 +50,7 @@ loadWelcomeView = function() {
 					signupform["email"].setAttribute("placeholder", message.message);
 				} else {
 					localStorage.setItem("logintoken", message.data);
-					loadProfileView();
+					displayView();
 				}
 			}
 		}
@@ -58,6 +59,7 @@ loadWelcomeView = function() {
 			
 	loginform.addEventListener("submit", function(event) {
 		event.preventDefault();
+<<<<<<< HEAD
         var message = serverstub.signIn(loginform["email"].value, loginform["password"].value);
         console.log(message);
         if(!message.success) {
@@ -68,6 +70,20 @@ loadWelcomeView = function() {
             localStorage.setItem("logintoken", message.data);
             loadProfileView();
         }
+=======
+		if (inputValidation("loginform")) {
+			var message = serverstub.signIn(loginform["email"].value, loginform["password"].value);
+			console.log(message);
+			if(!message.success) {
+				loginform["email"].value = "";
+				loginform["password"].value = "";
+				loginform["email"].setAttribute("placeholder", message.message);
+			} else {
+				localStorage.setItem("logintoken", message.data);
+				displayView();
+			}
+		}
+>>>>>>> 4c58f2373c357a402d439c148abe89d13737eddd
 	})
 }
 
@@ -107,7 +123,7 @@ loadProfileView = function() {
 		} else {
 			localStorage.removeItem("logintoken");
 		}
-		loadWelcomeView();
+		displayView();
 	})
 
     var userData = serverstub.getUserDataByToken(localStorage.getItem('logintoken')).data
@@ -224,9 +240,6 @@ reloadBoard = function(board, email=null) {
 		messageHTML.appendChild(document.createElement('br'));
 			
 		boardBox.appendChild(messageHTML);
-		boardBox.style.backgroundColor = "white";
-		boardBox.style.overflowY= "scroll";
-		boardBox.style.maxHeight = "45vh";
 	}
 }
 
