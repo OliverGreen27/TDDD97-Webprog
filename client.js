@@ -49,6 +49,18 @@ loadWelcomeView = function() {
 			
 	loginform.addEventListener("submit", function(event) {
 		event.preventDefault();
+<<<<<<< HEAD
+        var message = serverstub.signIn(loginform["email"].value, loginform["password"].value);
+        console.log(message);
+        if(!message.success) {
+            loginform["email"].value = "";
+            loginform["password"].value = "";
+            loginform["email"].setAttribute("placeholder", message.message);
+        } else {
+            localStorage.setItem("logintoken", message.data);
+            loadProfileView();
+        }
+=======
 		if (inputValidation("loginform")) {
 			var message = serverstub.signIn(loginform["email"].value, loginform["password"].value);
 			console.log(message);
@@ -61,8 +73,8 @@ loadWelcomeView = function() {
 				displayView();
 			}
 		}
+>>>>>>> 4c58f2373c357a402d439c148abe89d13737eddd
 	})
-
 }
 
 loadProfileView = function() {
@@ -223,49 +235,38 @@ reloadBoard = function(board, email=null) {
 
 inputValidation = function(formID) {
 	var form = document.forms[formID];	
-	let allInputs = form.querySelectorAll("input");
-	allInputs.forEach(function(elem) {
+    var emptyField = false;
+	form.querySelectorAll("input").forEach(function(elem) {
 		if(elem.type === "text" && elem.value === "") {
 			elem.setAttribute("placeholder", "Don't leave blank");
-			return false;
-		} })
-	if (form["email"] != null && !validateEmail(form)) {
-		return false;
-	}
-	return validatePassword(form, formID); 
+            emptyField = true;
+		}
+    })
+	return !emptyField && validateEmail(form) && validatePassword(form)
 }
 
 function validateEmail(form) {
-	var validRegex = /\w+@\w+\.\w+/
-	var email = form["email"];
-	if (!email.value.match(validRegex)) {
+    var valid = form["email"].value.match(/\w+@\w+\.\w+/)
+	if (!valid) {
 		email.value = "";
 		email.setAttribute("placeholder", "Invalid email");
-		return false;
 	} 
-	return true;
+	return valid;
 }
 
-function validatePassword(form, formID) {
-	if((formID == "signupform" || formID == "changepassform") && form["password"].value != form["password2"].value) {
-		form["password"].value = "";
-		form["password2"].value = "";
+function validatePassword(form) {
+    if (form['password'].value == form['password2'].value && form['password'].value.length >= 8) {
+        return true
+    }
+    if (form['password'].value != form['password2'].value) {
 		form["password"].setAttribute("placeholder", "Passwords must match");
-		form["password2"].setAttribute("placeholder", "Passwords must match");	
-		return false;	
-	}
-	if((formID == "signupform" || formID == "changepassform") && form["password"].value.length < 8) {
-		form["password"].value = "";
-		form["password2"].value = "";
+    }
+    else if (form['password'].value.length < 8) {
 		form["password"].setAttribute("placeholder", "Password must be 8 characters or longer");
-		return false;
-	}
-	if(formID == "loginform" && form["password"].value.length < 8) {
-		form["password"].value = "";
-		form["password"].setAttribute("placeholder", "Wrong password");
-		return false;
-	}
-	return true;
+    }
+    form["password"].value = "";
+    form["password2"].value = "";
+    return false;	
 }
 
 function openTab(event, tabName) {
