@@ -13,13 +13,14 @@ class SignUp {
 
 displayView = function() {
 	// the code required to display a view
-};
-window.onload = function() {
 	if (localStorage.getItem("logintoken") != null) {
 		loadProfileView();
 	} else {
 		loadWelcomeView();
 	}
+};
+window.onload = function() {
+	displayView();
 };
 
 loadWelcomeView = function() {
@@ -49,7 +50,7 @@ loadWelcomeView = function() {
 					signupform["email"].setAttribute("placeholder", message.message);
 				} else {
 					localStorage.setItem("logintoken", message.data);
-					loadProfileView();
+					displayView();
 				}
 			}
 		}
@@ -67,7 +68,7 @@ loadWelcomeView = function() {
 				loginform["email"].setAttribute("placeholder", message.message);
 			} else {
 				localStorage.setItem("logintoken", message.data);
-				loadProfileView();
+				displayView();
 			}
 		}
 	})
@@ -110,7 +111,7 @@ loadProfileView = function() {
 		} else {
 			localStorage.removeItem("logintoken");
 		}
-		loadWelcomeView();
+		displayView();
 	})
 
     var userData = serverstub.getUserDataByToken(localStorage.getItem('logintoken')).data
@@ -227,26 +228,21 @@ reloadBoard = function(board, email=null) {
 		messageHTML.appendChild(document.createElement('br'));
 			
 		boardBox.appendChild(messageHTML);
-		boardBox.style.backgroundColor = "white";
-		boardBox.style.overflowY= "scroll";
-		boardBox.style.maxHeight = "45vh";
 	}
 }
 
 inputValidation = function(formID) {
 	var form = document.forms[formID];	
 	let allInputs = form.querySelectorAll("input");
-	var valid = true;
 	allInputs.forEach(function(elem) {
 		if(elem.type === "text" && elem.value === "") {
 			elem.setAttribute("placeholder", "Don't leave blank");
-			valid = false;
+			return false;
 		} })
 	if (form["email"] != null && !validateEmail(form)) {
-		valid = false;
+		return false;
 	}
-	valid = validatePassword(form, formID); 
-	return valid;
+	return validatePassword(form, formID); 
 }
 
 function validateEmail(form) {

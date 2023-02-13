@@ -19,6 +19,13 @@
 }
 
 .form-input {
+	width: 300px;
+	display: flex;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+.form-input-welcome {
 	display: flex;
 	justify-content: space-between;
 	gap: 10px;
@@ -82,4 +89,36 @@ input[type=text]:focus {
 textarea {
 	overflow: hidden;
 	resize: none;
+}
+
+.message-board {
+    background-color: #f0e3d1;
+    overflow-y: scroll;
+    padding: 10px;
+    max-height: 40vh;
+    border-left: solid deeppink;
+    border-top-style: hidden;
+    border-right-style: hidden;
+    border-bottom-style: hidden;
+}
+
+/* width */
+::-webkit-scrollbar {
+	width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+	background: none;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+	border-radius:5px;
+	background: #888; 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+	background: #555; 
 }
