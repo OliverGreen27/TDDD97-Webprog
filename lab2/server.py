@@ -29,7 +29,8 @@ def sign_in():
     pw_hash = hashlib.sha256((args['password'] + args['email']).encode()).hexdigest()
 
     # TODO: test if empty email and password will sign in
-    if pw_hash != dbh.get_password(args['email']):
+    print(dbh.get_password(args['email']))
+    if tuple(pw_hash) != dbh.get_password(args['email']):
         return { "success": "false", "message": "Wrong username or password." }
 
     letters = "abcdefghiklmnopqrstuvwwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
@@ -57,7 +58,8 @@ def sign_up():
     if len(args['password']) < 8:
         return {"success": "false", "message": "Password needs to be at least 8 characters long."}
 
-    if dbh.get_user_data(args['email']) is not None:
+    print(dbh.get_user_data(args['email']))
+    if dbh.get_user_data(args['email']):
         return {"success": "false", "message": "User already exists."}
 
     pw_hash = hashlib.sha256((args['password'] + args['email']).encode()).hexdigest()
