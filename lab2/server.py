@@ -16,41 +16,30 @@ def index():
 
 
 @app.route('/signin', methods=['POST'])
-def sign_in(email='test@gmail.com', password='123123123'):
+def sign_in():
     """
      Authenticate the username by the provided password.
     """
 
-
     args = request.get_json()
 
-    if set(args) != {'email', 'password', 'firstname', 'familyname', 'gender', 'city', 'country'}:
+    if set(args) != {'email', 'password'}:
         return {"success": "false", "message": "Form data missing or incorrect type."}
 
-    if re.fullmatch(r'\w+@\w+.\w+', args['email']) is None: return False
+    pw_hash = hashlib.sha256((args['password'] + args['email']).encode()).hexdigest()
 
-    if len(args['password']) < 8: return False
+    # TODO: test if empty email and password will sign in
+    if pw_hash != dbh.get_password(args['email']):
+        return { "success": "false", "message": "Wrong username or password." }
+
+    letters = "abcdefghiklmnopqrstuvwwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+    token = ''.join(letters[random.randint(0,len(letters)-1)] for _ in range(36))
+
+    dbh.update_logged_in_users(args['email'], token)
+
+    return { "success": "true", "message": "Successfully signed in.", "data": token }
 
 
-
-    email = args['email']
-    password = args['password']
-    
-
-    hashed_password = hashlib.sha256((password + email).encode()).hexdigest()
-
-    database_password = dbh.get_password(email)
-
-    if hashed_password == database_password:
-        letters = "abcdefghiklmnopqrstuvwwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-        token = ''.join(letters[random.randint(0,len(letters)-1)] for _ in range(36))
-#       syncStorage();
-#       if(users[email] != null && users[email].password == password){
-#         loggedInUsers[token] = email;
-#         persistLoggedInUsers();
-        return { "success": "true", "message": "Successfully signed in.", "data": token }
-
-    return { "success": "false", "message": "Wrong username or password." }
 
 @app.route('/signup', methods=['POST'])
 def sign_up():
@@ -59,6 +48,14 @@ def sign_up():
     """
     args = request.get_json()
 
+    if set(args) != {'email', 'password', 'firstname', 'familyname', 'gender', 'city', 'country'}:
+        return {"success": "false", "message": "Form data missing or incorrect type."}
+
+    if re.fullmatch(r'\w+@\w+.\w+', args['email']) is None:
+        return {"success": "false", "message": "Invalid email address."}
+
+    if len(args['password']) < 8:
+        return {"success": "false", "message": "Password needs to be at least 8 characters long."}
 
     if dbh.get_user_data(args['email']) is not None:
         return {"success": "false", "message": "User already exists."}
@@ -69,19 +66,12 @@ def sign_up():
         args['email'],
         pw_hash,
         args['firstname'],
-        args['lastname'],
+        args['familyname'],
         args['gender'],
         args['city'],
         args['country'],
     )
-
-    return {"success": "true", "message": "Successfully created a new user."};
-        } else {
-        }
-
-      } else {
-      }   
-    pass
+    return {"success": "true", "message": "Successfully created a new user."}
 
 
 def sign_out(token):
