@@ -5,11 +5,6 @@ CREATE TABLE "logged_in_users" (
 	PRIMARY KEY("email")
 );
 
-CREATE TABLE "all_users" (
-    "email" TEXT,
-	PRIMARY KEY("email")
-);
-
 CREATE TABLE "user_data" (
 	"email"	TEXT,
 	"password_hash"	TEXT,

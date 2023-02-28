@@ -1,7 +1,8 @@
 import random
 import hashlib
+import re
 
-from flask import Flask
+from flask import Flask, request
 
 import database_helper as dbh
 
@@ -14,11 +15,28 @@ def index():
     return 'Hello world!'
 
 
-@app.route('/signin')
+@app.route('/signin', methods=['POST'])
 def sign_in(email='test@gmail.com', password='123123123'):
     """
      Authenticate the username by the provided password.
     """
+
+
+    args = request.get_json()
+
+    if set(args) != {'email', 'password', 'firstname', 'familyname', 'gender', 'city', 'country'}:
+        return {"success": "false", "message": "Form data missing or incorrect type."}
+
+    if re.fullmatch(r'\w+@\w+.\w+', args['email']) is None: return False
+
+    if len(args['password']) < 8: return False
+
+
+
+    email = args['email']
+    password = args['password']
+    
+
     hashed_password = hashlib.sha256((password + email).encode()).hexdigest()
 
     database_password = dbh.get_password(email)
@@ -34,11 +52,35 @@ def sign_in(email='test@gmail.com', password='123123123'):
 
     return { "success": "false", "message": "Wrong username or password." }
 
-@app.route('/signup')
-def sign_up(jsonObj):
+@app.route('/signup', methods=['POST'])
+def sign_up():
     """
     Register a user in the database.
     """
+    args = request.get_json()
+
+
+    if dbh.get_user_data(args['email']) is not None:
+        return {"success": "false", "message": "User already exists."}
+
+    pw_hash = hashlib.sha256((args['password'] + args['email']).encode()).hexdigest()
+
+    dbh.create_user(
+        args['email'],
+        pw_hash,
+        args['firstname'],
+        args['lastname'],
+        args['gender'],
+        args['city'],
+        args['country'],
+    )
+
+    return {"success": "true", "message": "Successfully created a new user."};
+        } else {
+        }
+
+      } else {
+      }   
     pass
 
 
