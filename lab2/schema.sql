@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS user_messages;
 
 CREATE TABLE logged_in_users (
     "email" TEXT,
-	"token"	TEXT NOT NULL UNIQUE,
+	"token"	TEXT,
 	PRIMARY KEY("email")
 );
 

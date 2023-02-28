@@ -25,21 +25,22 @@ def sign_in():
 
     if set(args) != {'email', 'password'}:
         return {"success": "false", "message": "Form data missing or incorrect type."}
+    
+    if dbh.get_token(args['email']):
+        return {"success": "false", "message": "User already signed in."}
 
     pw_hash = hashlib.sha256((args['password'] + args['email']).encode()).hexdigest()
 
     # TODO: test if empty email and password will sign in
-    print(dbh.get_password(args['email']))
     if pw_hash != dbh.get_password(args['email']):
         return { "success": "false", "message": "Wrong username or password." }
 
     letters = "abcdefghiklmnopqrstuvwwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
     token = ''.join(letters[random.randint(0,len(letters)-1)] for _ in range(36))
-
+    
     dbh.update_logged_in_users(args['email'], token)
 
     return { "success": "true", "message": "Successfully signed in.", "data": token }
-
 
 
 @app.route('/signup', methods=['POST'])
