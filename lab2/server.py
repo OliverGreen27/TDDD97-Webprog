@@ -30,7 +30,7 @@ def sign_in():
 
     # TODO: test if empty email and password will sign in
     print(dbh.get_password(args['email']))
-    if tuple(pw_hash) != dbh.get_password(args['email']):
+    if pw_hash != dbh.get_password(args['email']):
         return { "success": "false", "message": "Wrong username or password." }
 
     letters = "abcdefghiklmnopqrstuvwwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
