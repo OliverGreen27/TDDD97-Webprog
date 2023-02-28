@@ -13,11 +13,13 @@ def query_db(query, args=(), fetchone=False, commit=False):
 
 
 def get_token(email):
-    return query_db(f"SELECT token FROM logged_in_users WHERE email=?;", (email,), fetchone=True)
+    res = query_db(f"SELECT token FROM logged_in_users WHERE email=?;", (email,), fetchone=True)
+    return res[0] if res else None
 
 
 def get_password(email):
-    return query_db("SELECT password_hash FROM user_data WHERE email=?;", (email,), fetchone=True)
+    res = query_db("SELECT password_hash FROM user_data WHERE email=?;", (email,), fetchone=True) 
+    return res[0] if res else None
 
 
 def update_logged_in_users(email, token):
@@ -25,7 +27,8 @@ def update_logged_in_users(email, token):
 
 
 def get_user_data(email):
-    return query_db("SELECT * FROM user_data WHERE email=?;", (email,))
+    res = query_db("SELECT * FROM user_data WHERE email=?;", (email,), fetchone=True)
+    return res
 
 
 def create_user(email, pw_hash, fname, lname, gender, city, country):
