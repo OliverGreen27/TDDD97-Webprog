@@ -6,10 +6,12 @@ cur = con.cursor()
 
 
 def query_db(query, args=(), fetchone=False, commit=False):
-    res = cur.execute(query, args).fetchall()
+    res = cur.execute(query, args)
     if commit:
         con.commit()
-    return (res[0] if res else None) if fetchone else res
+    else:
+        data = res.fetchall()
+        return (data[0] if data else None) if fetchone else data
 
 
 def get_token(email):
