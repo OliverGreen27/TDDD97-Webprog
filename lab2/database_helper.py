@@ -19,13 +19,22 @@ def get_token(email):
     return res[0] if res else None
 
 
+def signout(token):
+    query_db(f"DELETE FROM logged_in_users WHERE token=?;", (token,), commit=True)
+
+
+def get_email(token):
+    res = query_db(f"SELECT email FROM logged_in_users WHERE token=?;", (token,), fetchone=True)
+    return res[0] if res else None
+
+
 def get_password(email):
     res = query_db("SELECT password_hash FROM user_data WHERE email=?;", (email,), fetchone=True) 
     return res[0] if res else None
 
 
 def update_logged_in_users(email, token):
-    query_db("Insert INTO logged_in_users VALUES (?,?);", (email,token), commit=True)
+    query_db("INSERT INTO logged_in_users VALUES (?,?);", (email,token), commit=True)
 
 
 def get_user_data(email):
@@ -34,4 +43,8 @@ def get_user_data(email):
 
 
 def create_user(email, pw_hash, fname, lname, gender, city, country):
-    query_db(f"Insert INTO user_data VALUES (?,?,?,?,?,?,?);", (email, pw_hash, fname, lname, gender, city, country), commit=True)
+    query_db(f"INSERT INTO user_data VALUES (?,?,?,?,?,?,?);", (email, pw_hash, fname, lname, gender, city, country), commit=True)
+
+
+def update_password(email, password):
+    query_db(f"UPDATE user_data SET password_hash=? WHERE email=?", (password, email))

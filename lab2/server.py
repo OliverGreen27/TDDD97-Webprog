@@ -77,18 +77,49 @@ def sign_up():
     return {"success": "true", "message": "Successfully created a new user."}
 
 
-def sign_out(token):
+@app.route('/signout', methods=['POST'])
+def sign_out():
     """
     Sign out a user from the system.
     """
-    return
+    args = request.get_json()
+
+    if set(args) != {"token"}:
+        return {"success": "false", "message": "Form data missing or incorrect type."}
+
+    if not dbh.get_email(args['token']):
+        return {"success": "false", "message": "User is not signed in."}
+
+    dbh.signout(args['token'])
+
+    return {"success": "true", "message": "Successfully signed out."}
 
 
-def change_password(token, oldPassword, newPassword):
+@app.route('/changepass', methods=['POST'])
+def change_password():
     """
     Change the password of the current user to a new one.
     """
-    pass
+    args = request.get_json()
+    if set(args) != {'token', 'oldPassword', 'newPassword'}:
+        return {"success": "false", "message": "Form data missing or incorrect type."}
+    
+    email = dbh.get_email(args['token'])
+    if not email:
+        return {"success": "false", "message": "User is not signed in."}
+
+    if len(args['newPassword']) < 8:
+        return {"success": "false", "message": "Password needs to be at least 8 characters long."}
+
+    pw_hash = hashlib.sha256((args['oldPassword'] + email).encode()).hexdigest()
+
+    # TODO: test if empty email and password will sign in
+    if pw_hash != dbh.get_password(email):
+        return { "success": "false", "message": "Wrong password." }
+
+    new_pw_hash = hashlib.sha256((args['newPassword'] + email).encode()).hexdigest()
+    dbh.update_password(email, new_pw_hash)
+    return {"success": "true", "message": "Password changed."}
 
 
 def get_user_data_by_token(token):
