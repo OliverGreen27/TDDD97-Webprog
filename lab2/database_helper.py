@@ -42,6 +42,10 @@ def get_user_data(email):
     return res
 
 
+def post_message(writer, email, message):
+    query_db(f"INSERT INTO user_data VALUES (?,?,?);", (writer, email, message), commit=True)
+
+
 def create_user(email, pw_hash, fname, lname, gender, city, country):
     query_db(f"INSERT INTO user_data VALUES (?,?,?,?,?,?,?);", (email, pw_hash, fname, lname, gender, city, country), commit=True)
 

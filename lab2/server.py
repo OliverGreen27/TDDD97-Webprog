@@ -65,7 +65,7 @@ def sign_up():
 
     pw_hash = hashlib.sha256((args['password'] + args['email']).encode()).hexdigest()
 
-    dbh.create_user(
+    dbh.post_message(
         args['email'],
         pw_hash,
         args['firstname'],
@@ -176,8 +176,19 @@ def get_user_messages_by_email(token, email):
     pass
 
 
-def post_message(token, message, email):
-    pass
+@app.route("/post_message")
+def post_message():
+    args = request.get_json()
+    if set(args) != {'email', 'message', 'token'}:
+        return {"success": "false", "message": "Form data missing or incorrect type."}
+    writer = dbh.get_email(args['token'])
+    if not writer:
+        return {"success": "false", "message": "You are not signed in."}
+
+    dbh.post_message(writer, args['email'], args['message'])
+
+    return {"success": "true", "message": "Message posted."}
+
 
 
 app.run(host='0.0.0.0', port=5000)
