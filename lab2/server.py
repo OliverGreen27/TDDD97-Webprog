@@ -65,7 +65,7 @@ def sign_up():
 
     pw_hash = hashlib.sha256((args['password'] + args['email']).encode()).hexdigest()
 
-    dbh.create_user(
+    dbh.post_message(
         args['email'],
         pw_hash,
         args['firstname'],
@@ -124,25 +124,29 @@ def change_password():
 
 @app.route('/get_user_data_by_token')
 def get_user_data_by_token():
-    #return email, firstname, familyname, gender, city, country
     args = request.get_json()
-    email = dbh.get_email(args['token'])
+    if 'token' not in args:
+        return {"success": "false", "message": "Form data missing or incorrect type."}
+    token = args['token']
+    email = dbh.get_email(token)
     if not email:
-        return {"success": "false", "message": "User is not signed in."}
+        return {"success": "false", "message": "You are not signed in."}
 
-    data = get_user_data_by_email(email)['data'] 
+    data = get_user_data_by_email(email, token)['data'] 
     return {"success": "true", "message": "Successfully fetched data", "data": data}
 
 
 @app.route('/get_user_data_by_email')
-def get_user_data_by_email(email=None):
-    #return email, firstname, familyname, gender, city, country
-
-    if not email:
+def get_user_data_by_email(email=None, token=None):
+    if not email and not token:
         args = request.get_json()
-        if 'email' not in args:
+        if set(args) != {'email', 'token'}:
             return {"success": "false", "message": "Form data missing or incorrect type."}
         email = args['email']
+        token = args['token']
+    
+    if not dbh.get_email(token):
+        return {"success": "false", "message": "You are not signed in."}
 
     data = dbh.get_user_data(email)
     print("get_user_data:",data)
@@ -189,8 +193,19 @@ def get_user_messages_by_email(email=None):
     return {"success": "true", "message": "Successfully fetched data", "data": messages}
 
 
-def post_message(token, message, email):
-    pass
+@app.route("/post_message")
+def post_message():
+    args = request.get_json()
+    if set(args) != {'email', 'message', 'token'}:
+        return {"success": "false", "message": "Form data missing or incorrect type."}
+    writer = dbh.get_email(args['token'])
+    if not writer:
+        return {"success": "false", "message": "You are not signed in."}
+
+    dbh.post_message(writer, args['email'], args['message'])
+
+    return {"success": "true", "message": "Message posted."}
+
 
 
 app.run(host='0.0.0.0', port=5000)
