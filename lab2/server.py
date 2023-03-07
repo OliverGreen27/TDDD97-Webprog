@@ -122,21 +122,46 @@ def change_password():
     return {"success": "true", "message": "Password changed."}
 
 
-def get_user_data_by_token(token):
+@app.route('/get_user_data_by_token')
+def get_user_data_by_token():
     #return email, firstname, familyname, gender, city, country
-    pass
+    args = request.get_json()
+    email = dbh.get_email(args['token'])
+    if not email:
+        return {"success": "false", "message": "User is not signed in."}
+
+    data = get_user_data_by_email(email)['data'] 
+    return {"success": "true", "message": "Successfully fetched data", "data": data}
 
 
-def get_user_data_by_email(token, email):
+@app.route('/get_user_data_by_email')
+def get_user_data_by_email(email=None):
     #return email, firstname, familyname, gender, city, country
-    message = {"status": "", "message": "", "data": ""}
-    if dbh.get_token_from_email(email) == token:
-        data = dbh.get_user_data(email)
-        if data:
-            message["data"] = data
-    else:
-        "you are not logged in"
-        pass
+
+    if not email:
+        args = request.get_json()
+        if 'email' not in args:
+            return {"success": "false", "message": "Form data missing or incorrect type."}
+        email = args['email']
+
+    data = dbh.get_user_data(email)
+    print("get_user_data:",data)
+
+    if not data:
+        return {"success": "false", "message": "The user does not exist."}
+    
+    data = {
+        "email":     data[0],
+        "firstname": data[2],
+        "familyname":data[3],
+        "gender":    data[4],
+        "city":      data[5],
+        "country":   data[6], 
+    }
+
+    return {"success": "true", "message": "Successfully fetched data", "data": data}
+    
+
 
 
 def get_user_messages_by_token(token):
