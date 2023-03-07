@@ -65,7 +65,7 @@ def sign_up():
 
     pw_hash = hashlib.sha256((args['password'] + args['email']).encode()).hexdigest()
 
-    dbh.post_message(
+    dbh.create_user(
         args['email'],
         pw_hash,
         args['firstname'],
@@ -165,6 +165,7 @@ def get_user_data_by_email(email=None, token=None):
 
     return {"success": "true", "message": "Successfully fetched data", "data": data}
     
+
 @app.route('/get_user_messages_by_token')
 def get_user_messages_by_token():
     #return messages
