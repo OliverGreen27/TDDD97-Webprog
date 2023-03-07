@@ -20,7 +20,8 @@ CREATE TABLE user_data (
 );
 
 CREATE TABLE user_messages (
-	"email"	TEXT,
+	"writer"	TEXT,
+	"email"	    TEXT,
 	"message"	TEXT,
 	PRIMARY KEY("email")
 );
