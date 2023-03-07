@@ -161,17 +161,32 @@ def get_user_data_by_email(email=None):
 
     return {"success": "true", "message": "Successfully fetched data", "data": data}
     
-
-
-
-def get_user_messages_by_token(token):
+@app.route('/get_user_messages_by_token')
+def get_user_messages_by_token():
     #return messages
-    pass
+    args = request.get_json()
+    email = dbh.get_email(args['token'])
+    if not email:
+        return {"success": "false", "message": "User is not signed in."}
+
+    data = get_user_messages_by_email(email)['data'] 
+    return {"success": "true", "message": "Successfully fetched messages", "data": data}
 
 
-def get_user_messages_by_email(token, email):
+@app.route('/get_user_messages_by_email')
+def get_user_messages_by_email(email=None):
     #return messages
-    pass
+    if not email:
+        args = request.get_json()
+        if 'email' not in args:
+            return {"success": "false", "message": "Form data missing or incorrect type."}
+        email = args['email']
+
+    data = dbh.get_user_messages(email)
+    
+    messages = [{"writer":writer, "content":content} for writer, content in data]
+
+    return {"success": "true", "message": "Successfully fetched data", "data": messages}
 
 
 def post_message(token, message, email):

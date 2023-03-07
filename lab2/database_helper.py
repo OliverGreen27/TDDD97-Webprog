@@ -41,10 +41,13 @@ def get_user_data(email):
     res = query_db("SELECT * FROM user_data WHERE email=?;", (email,), fetchone=True)
     return res
 
+def get_user_messages(email):
+    res = query_db("SELECT writer, message FROM user_messages WHERE email=?;", (email,))
+    return res
 
 def create_user(email, pw_hash, fname, lname, gender, city, country):
     query_db(f"INSERT INTO user_data VALUES (?,?,?,?,?,?,?);", (email, pw_hash, fname, lname, gender, city, country), commit=True)
 
 
 def update_password(email, password):
-    query_db(f"UPDATE user_data SET password_hash=? WHERE email=?", (password, email))
+    query_db(f"UPDATE user_data SET password_hash=? WHERE email=?", (password, email), commit=True)
