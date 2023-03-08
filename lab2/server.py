@@ -26,8 +26,9 @@ def sign_in():
     if set(args) != {'email', 'password'}:
         return {"success": "false", "message": "Form data missing or incorrect type."}
     
-    if dbh.get_token(args['email']):
-        return {"success": "false", "message": "User already signed in."}
+    token = dbh.get_token(args['email'])
+    if token:
+        return { "success": "true", "message": "Successfully signed in.", "data": token }
 
     pw_hash = hashlib.sha256((args['password'] + args['email']).encode()).hexdigest()
 
@@ -125,7 +126,7 @@ def change_password():
     return {"success": "true", "message": "Password changed."}
 
 
-@app.route('/get_user_data_by_token')
+@app.route('/get_user_data_by_token', methods=['POST'])
 def get_user_data_by_token():
 
     token = request.headers.get('Authorization')
@@ -141,7 +142,7 @@ def get_user_data_by_token():
     return {"success": "true", "message": "Successfully fetched data", "data": data}
 
 
-@app.route('/get_user_data_by_email')
+@app.route('/get_user_data_by_email', methods=['POST'])
 def get_user_data_by_email(email=None, token=None):
     if not email and not token:
         args = request.get_json()
@@ -171,7 +172,7 @@ def get_user_data_by_email(email=None, token=None):
     return {"success": "true", "message": "Successfully fetched data", "data": data}
     
 
-@app.route('/get_user_messages_by_token')
+@app.route('/get_user_messages_by_token', methods=['POST'])
 def get_user_messages_by_token():
     #return messages
     token = request.headers.get('Authorization')
@@ -183,7 +184,7 @@ def get_user_messages_by_token():
     return {"success": "true", "message": "Successfully fetched messages", "data": data}
 
 
-@app.route('/get_user_messages_by_email')
+@app.route('/get_user_messages_by_email', methods=['POST'])
 def get_user_messages_by_email(email=None, token=None):
     #return messages
     if not email and not token:
@@ -203,12 +204,13 @@ def get_user_messages_by_email(email=None, token=None):
     return {"success": "true", "message": "Successfully fetched data", "data": messages}
 
 
-@app.route("/post_message")
+@app.route("/post_message", methods=['POST'])
 def post_message():
     args = request.get_json()
-    if set(args) != {'email', 'message', 'token'}:
+    if set(args) != {'email', 'message'}:
         return {"success": "false", "message": "Form data missing or incorrect type."}
-    writer = dbh.get_email(args['token'])
+    token = request.headers.get('Authorization')
+    writer = dbh.get_email(token)
     if not writer:
         return {"success": "false", "message": "You are not signed in."}
 
