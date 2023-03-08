@@ -82,15 +82,12 @@ def sign_out():
     """
     Sign out a user from the system.
     """
-    args = request.get_json()
+    token = request.headers.get('Authorization')
 
-    if set(args) != {"token"}:
-        return {"success": "false", "message": "Form data missing or incorrect type."}
-
-    if not dbh.get_email(args['token']):
+    if not token or not dbh.get_email(token):
         return {"success": "false", "message": "User is not signed in."}
 
-    dbh.signout(args['token'])
+    dbh.signout(token)
 
     return {"success": "true", "message": "Successfully signed out."}
 
@@ -101,10 +98,16 @@ def change_password():
     Change the password of the current user to a new one.
     """
     args = request.get_json()
-    if set(args) != {'token', 'oldPassword', 'newPassword'}:
+    token = request.headers.get('Authorization')
+
+    if set(args) != {'oldPassword', 'newPassword'}:
         return {"success": "false", "message": "Form data missing or incorrect type."}
-    
-    email = dbh.get_email(args['token'])
+
+    email = dbh.get_email(token)    
+
+    if not token:
+        return {"success": "false", "message": "No authorization token sent."}
+
     if not email:
         return {"success": "false", "message": "User is not signed in."}
 
@@ -124,10 +127,12 @@ def change_password():
 
 @app.route('/get_user_data_by_token')
 def get_user_data_by_token():
-    args = request.get_json()
-    if 'token' not in args:
-        return {"success": "false", "message": "Form data missing or incorrect type."}
-    token = args['token']
+
+    token = request.headers.get('Authorization')
+
+    if not token:
+        return {"success": "false", "message": "No authorization token sent."}
+
     email = dbh.get_email(token)
     if not email:
         return {"success": "false", "message": "You are not signed in."}
@@ -140,10 +145,10 @@ def get_user_data_by_token():
 def get_user_data_by_email(email=None, token=None):
     if not email and not token:
         args = request.get_json()
-        if set(args) != {'email', 'token'}:
+        if set(args) != {'email'}:
             return {"success": "false", "message": "Form data missing or incorrect type."}
         email = args['email']
-        token = args['token']
+        token = request.headers.get('Authorization')
     
     if not dbh.get_email(token):
         return {"success": "false", "message": "You are not signed in."}
@@ -169,23 +174,27 @@ def get_user_data_by_email(email=None, token=None):
 @app.route('/get_user_messages_by_token')
 def get_user_messages_by_token():
     #return messages
-    args = request.get_json()
-    email = dbh.get_email(args['token'])
+    token = request.headers.get('Authorization')
+    email = dbh.get_email(token)
     if not email:
         return {"success": "false", "message": "User is not signed in."}
 
-    data = get_user_messages_by_email(email)['data'] 
+    data = get_user_messages_by_email(email, token)['data'] 
     return {"success": "true", "message": "Successfully fetched messages", "data": data}
 
 
 @app.route('/get_user_messages_by_email')
-def get_user_messages_by_email(email=None):
+def get_user_messages_by_email(email=None, token=None):
     #return messages
-    if not email:
+    if not email and not token:
         args = request.get_json()
         if 'email' not in args:
             return {"success": "false", "message": "Form data missing or incorrect type."}
         email = args['email']
+        token = request.headers.get('Authorization')
+    
+    if not dbh.get_email(token):
+        return {"success": "false", "message": "You are not signed in."}
 
     data = dbh.get_user_messages(email)
     
