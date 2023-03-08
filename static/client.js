@@ -29,7 +29,19 @@ loadWelcomeView = function() {
 			signupObject["city"] = signupform["city"].value;
 			signupObject["country"] = signupform["country"].value;
 
-			var message = serverstub.signUp(signupObject);
+			console.log(signupObject);
+			var xhttp = new XMLHttpRequest();
+			var message;
+
+			xhttp.onreadystatechange = function() {
+				if(this.readyState == 4 && this.status == 200) {
+					message = xhttp.responseText;
+				}
+			}
+			xhttp.open("POST", "/signup", true);
+			xhttp.setRequestHeader("Content-Type", "application/json");
+			xhttp.send(JSON.stringify(signupObject));
+
 			console.log(message);
 			if (!message.success) {
 				signupform["email"].value = "";
@@ -49,7 +61,21 @@ loadWelcomeView = function() {
 			
 	loginform.addEventListener("submit", function(event) {
 		event.preventDefault();
-        var message = serverstub.signIn(loginform["email"].value, loginform["password"].value);
+		var xhttp = new XMLHttpRequest();
+		var message;
+
+		xhttp.onreadystatechange = function() {
+			if(this.readyState == 4 && this.status == 200) {
+				message = xhttp.responseText;
+			}
+		}
+		xhttp.open("POST", "/signin", true);
+		xhttp.setRequestHeader("Content-Type", "application/json");
+		xhttp.send({
+			"email": loginform["email"].value,
+			"password": loginform["password"].value
+		});
+
         console.log(message);
         if(!message.success) {
             loginform["email"].value = "";
