@@ -135,8 +135,7 @@ def get_user_data_by_token():
     if not email:
         return {}, 401
 
-    data = get_user_data_by_email(email, token)['data'] 
-    return {"data" : data}
+    return get_user_data_by_email(email, token)
 
 
 @app.route('/get_user_data_by_email', methods=['POST'])
@@ -214,4 +213,4 @@ def post_message():
     return {}, 201
 
 
-app.run(host='0.0.0.0', port=5000)
+#app.run(host='0.0.0.0', port=5000)
