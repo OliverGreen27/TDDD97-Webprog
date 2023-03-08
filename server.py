@@ -33,7 +33,7 @@ def sign_in():
 
     # TODO: test if empty email and password will sign in
     if pw_hash != dbh.get_password(args['email']):
-        return {}, 400
+        return {}, 404
 
     letters = "abcdefghiklmnopqrstuvwwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
     token = ''.join(letters[random.randint(0,len(letters)-1)] for _ in range(36))
@@ -86,14 +86,14 @@ def sign_out():
     email = dbh.get_email(token)
 
     if not email:
-        return {}, 400
+        return {}, 404
 
     dbh.signout(token)
 
     return {}, 200
 
 
-@app.route('/changepass', methods=['POST'])
+@app.route('/changepass', methods=['PUT'])
 def change_password():
     """
     Change the password of the current user to a new one.
@@ -116,39 +116,35 @@ def change_password():
 
     # TODO: test if empty email and password will sign in
     if pw_hash != dbh.get_password(email):
-        return {}, 400
+        return {}, 404
 
     new_pw_hash = hashlib.sha256((args['newPassword'] + email).encode()).hexdigest()
     dbh.update_password(email, new_pw_hash)
     return {}, 200
 
 
-@app.route('/get_user_data_by_token', methods=['POST'])
+@app.route('/get_user_data_by_token')
 def get_user_data_by_token():
 
     token = request.headers.get('Authorization')
-
-    if not token:
-        return {}, 401
-
     email = dbh.get_email(token)
-    if not email:
+
+    if not token or not email:
         return {}, 401
 
     return get_user_data_by_email(email, token)
 
 
-@app.route('/get_user_data_by_email', methods=['POST'])
+@app.route('/get_user_data_by_email')
 def get_user_data_by_email(email=None, token=None):
     if not email and not token:
-        args = request.get_json()
-        if set(args) != {'email'}:
+        email = request.args.get("email")
+        if not email:
             return {}, 400
-        email = args['email']
         token = request.headers.get('Authorization')
     
     if not dbh.get_email(token):
-        return {}, 401
+        return {}, 404
 
     data = dbh.get_user_data(email)
 
@@ -167,25 +163,24 @@ def get_user_data_by_email(email=None, token=None):
     return {"data" : data}, 200
     
 
-@app.route('/get_user_messages_by_token', methods=['POST'])
+@app.route('/get_user_messages_by_token')
 def get_user_messages_by_token():
     #return messages
     token = request.headers.get('Authorization')
     email = dbh.get_email(token)
-    if not email:
+    if not token or not email:
         return {}, 401
 
     return get_user_messages_by_email(email, token)
 
 
-@app.route('/get_user_messages_by_email', methods=['POST'])
+@app.route('/get_user_messages_by_email')
 def get_user_messages_by_email(email=None, token=None):
     #return messages
     if not email and not token:
-        args = request.get_json()
-        if 'email' not in args:
+        email = request.args.get("email")
+        if not email:
             return {}, 400
-        email = args['email']
         token = request.headers.get('Authorization')
     
     if not dbh.get_email(token):
