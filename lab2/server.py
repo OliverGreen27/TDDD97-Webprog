@@ -9,10 +9,9 @@ import database_helper as dbh
 
 app = Flask(__name__)
 
-
 @app.route('/')
 def index():
-    return 'Hello world!'
+    return app.send_static_file("client.html"), 200
 
 
 @app.route('/signin', methods=['POST'])
