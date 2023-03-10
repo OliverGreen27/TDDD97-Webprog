@@ -126,8 +126,7 @@ loadProfileView = function() {
 	changepassform.addEventListener("submit", function(event) {
 		event.preventDefault();
 
-        var token = localStorage.getItem("logintoken")
-        console.log("token",token)
+        var token = localStorage.getItem("logintoken");
 
 		if (inputValidation("changepassform")) {
             var oldPassword = changepassform["oldpassword"].value
@@ -170,17 +169,25 @@ loadProfileView = function() {
             }));
 		}
 	})
-    return;
+
 	document.getElementById("logoutbutton").addEventListener("click", function(event) {
-		var message = serverstub.signOut(localStorage.getItem("logintoken"));
-		if(!message.success) {
-			document.getElementById("message1").innerText = message.message;
-		} else {
-			localStorage.removeItem("logintoken");
+        var logoutRequest = new XMLHttpRequest();
+        var token = localStorage.getItem("logintoken");
+
+		logoutRequest.onreadystatechange = function() {
+			if(this.readyState == 4){
+			    localStorage.removeItem("logintoken");
+		        displayView();
+			}
 		}
-		displayView();
+
+		logoutRequest.open("POST", "/signout", true);
+		logoutRequest.setRequestHeader("Content-Type", "application/json");
+        logoutRequest.setRequestHeader("Authorization", token);
+		logoutRequest.send();
 	})
 
+    return;
     var userData = serverstub.getUserDataByToken(localStorage.getItem('logintoken')).data
 
     // Change the information displayed on the homepage to the user credentials 
