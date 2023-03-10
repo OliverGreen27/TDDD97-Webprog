@@ -187,14 +187,27 @@ loadProfileView = function() {
 		logoutRequest.send();
 	})
 
-    return;
-    var userData = serverstub.getUserDataByToken(localStorage.getItem('logintoken')).data
 
-    // Change the information displayed on the homepage to the user credentials 
-    document.getElementById('home-username').innerText = userData.firstname + ' ' + userData.familyname;
-    document.getElementById('home-gender').innerText = userData.gender;
-    document.getElementById('home-location').innerText = userData.city + ', ' + userData.country;
-    document.getElementById('home-email').innerText = userData.email;
+    var userdataRequest = new XMLHttpRequest();
+    var token = localStorage.getItem("logintoken");
+
+    userdataRequest.onreadystatechange = function() {
+        if(this.readyState == 4 && this.status == 200){
+            var userData = JSON.parse(userdataRequest.responseText);
+            // Change the information displayed on the homepage to the user credentials 
+            document.getElementById('home-username').innerText = userData.firstname + ' ' + userData.familyname;
+            document.getElementById('home-gender').innerText = userData.gender;
+            document.getElementById('home-location').innerText = userData.city + ', ' + userData.country;
+            document.getElementById('home-email').innerText = userData.email;
+        }
+    }
+
+    userdataRequest.open("GET", "/get_user_data_by_token", true);
+    userdataRequest.setRequestHeader("Content-Type", "application/json");
+    userdataRequest.setRequestHeader("Authorization", token);
+    userdataRequest.send();
+
+    return;
 
 	var postmessageform = document.forms["board-text-form"];
 	postmessageform.addEventListener("submit", function(event) {

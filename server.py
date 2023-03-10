@@ -160,7 +160,7 @@ def get_user_data_by_email(email=None, token=None):
         "country":   data[6], 
     }
 
-    return {"data" : data}, 200
+    return data, 200
     
 
 @app.route('/get_user_messages_by_token')
