@@ -20,71 +20,98 @@ loadWelcomeView = function() {
 	signupform.addEventListener("submit", function(event) {
 		event.preventDefault();
 		if(inputValidation("signupform")) {
-			var signupObject = {}
-			signupObject["email"] = signupform["email"].value;
-			signupObject["password"] = signupform["password"].value;
-			signupObject["firstname"] = signupform["fname"].value;
-			signupObject["familyname"] = signupform["lname"].value;
-			signupObject["gender"] = signupform["gender"].value;
-			signupObject["city"] = signupform["city"].value;
-			signupObject["country"] = signupform["country"].value;
+			var signupRequest = new XMLHttpRequest();
+			var loginRequest = new XMLHttpRequest();
 
-			console.log(signupObject);
-			var xhttp = new XMLHttpRequest();
-			var message;
+            var email = signupform["email"].value;
+            var password = signupform["password"].value;
+            var firstname = signupform["fname"].value;
+            var familyname = signupform["lname"].value;
+            var gender = signupform["gender"].value;
+            var country = signupform["country"].value;
+            var city = signupform["city"].value;
 
-			xhttp.onreadystatechange = function() {
+			signupRequest.onreadystatechange = function() {
+				if(this.readyState == 4) {
+                    switch (this.status){
+                        case 201:
+                            loginRequest.open("POST", "/signin", true);
+                            loginRequest.setRequestHeader("Content-Type", "application/json");
+                            loginRequest.send(JSON.stringify({
+                                "email"     : email,
+                                "password"  : password,
+                            }));
+                            break;
+                        case 400:
+                            signupform["email"].value = "";
+                            signupform["password"].value = "";
+                            signupform["password2"].value = "";
+                            signupform["email"].setAttribute("placeholder", "Invalid input.");
+                            break;
+                        case 409:
+                            signupform["email"].value = "";
+                            signupform["password"].value = "";
+                            signupform["password2"].value = "";
+                            signupform["email"].setAttribute("placeholder", "User already exist.");
+
+                    }
+				}
+			}
+
+			loginRequest.onreadystatechange = function() {
 				if(this.readyState == 4 && this.status == 200) {
-					message = xhttp.responseText;
+                    localStorage.setItem("logintoken", message.data);
+                    displayView();
 				}
 			}
-			xhttp.open("POST", "/signup", true);
-			xhttp.setRequestHeader("Content-Type", "application/json");
-			xhttp.send(JSON.stringify(signupObject));
 
-			console.log(message);
-			if (!message.success) {
-				signupform["email"].value = "";
-				signupform["email"].setAttribute("placeholder", message.message);
-			} else {
-				message = serverstub.signIn(signupform["email"].value, signupform["password"].value);
-				if(!message.success) {
-					signupform["email"].setAttribute("placeholder", message.message);
-				} else {
-					localStorage.setItem("logintoken", message.data);
-					displayView();
-				}
-			}
+			signupRequest.open("POST", "/signup", true);
+			signupRequest.setRequestHeader("Content-Type", "application/json");
+			signupRequest.send(JSON.stringify({
+                "email"     : email,
+                "password"  : password,
+                "firstname" : firstname,
+                "familyname": familyname,
+                "gender"    : gender,
+                "city"      : city,
+                "country"   : country,
+            }));
 		}
 	})
 		
 			
 	loginform.addEventListener("submit", function(event) {
 		event.preventDefault();
-		var xhttp = new XMLHttpRequest();
-		var message;
+		var loginRequest = new XMLHttpRequest();
 
-		xhttp.onreadystatechange = function() {
-			if(this.readyState == 4 && this.status == 200) {
-				message = xhttp.responseText;
+		loginRequest.onreadystatechange = function() {
+			if(this.readyState == 4){
+                switch (this.status) {
+                    case 200:
+                        localStorage.setItem("logintoken", message.data);
+                        displayView();
+                        break;
+                    case 400:
+                        loginform["email"].value = "";
+                        loginform["password"].value = "";
+                        loginform["email"].setAttribute("placeholder", "Invalid input.");
+                        break;
+                    case 404:
+                        loginform["email"].value = "";
+                        loginform["password"].value = "";
+                        loginform["email"].setAttribute("placeholder", "User does not exist.");
+                        break;
+
+                }
 			}
 		}
-		xhttp.open("POST", "/signin", true);
-		xhttp.setRequestHeader("Content-Type", "application/json");
-		xhttp.send({
+
+		loginRequest.open("POST", "/signin", true);
+		loginRequest.setRequestHeader("Content-Type", "application/json");
+		loginRequest.send(JSON.stringify({
 			"email": loginform["email"].value,
 			"password": loginform["password"].value
-		});
-
-        console.log(message);
-        if(!message.success) {
-            loginform["email"].value = "";
-            loginform["password"].value = "";
-            loginform["email"].setAttribute("placeholder", message.message);
-        } else {
-            localStorage.setItem("logintoken", message.data);
-            displayView();
-        }
+		}));
 	})
 }
 
