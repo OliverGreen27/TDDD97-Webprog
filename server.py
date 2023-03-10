@@ -197,8 +197,6 @@ def get_user_messages_by_email(email=None, token=None):
 def post_message():
     args = request.get_json()
 
-    print("/post_message:",args)
-
     if 'message' not in args:
         return {}, 400
 

@@ -2,16 +2,16 @@ import sqlite3
 
 con = sqlite3.connect("database.db", check_same_thread=False)
 
-cur = con.cursor()
-
 
 def query_db(query, args=(), fetchone=False, commit=False):
-    res = cur.execute(query, args)
-    if commit:
-        con.commit()
-    else:
-        data = res.fetchall()
-        return (data[0] if data else None) if fetchone else data
+    with con:
+        cur = con.cursor()
+        res = cur.execute(query, args)
+        if commit:
+            con.commit()
+        else:
+            data = res.fetchall()
+            return (data[0] if data else None) if fetchone else data
 
 
 def get_token(email):
@@ -41,9 +41,11 @@ def get_user_data(email):
     res = query_db("SELECT * FROM user_data WHERE email=?;", (email,), fetchone=True)
     return res
 
+
 def get_user_messages(email):
     res = query_db("SELECT writer, message FROM user_messages WHERE email=?;", (email,))
     return res
+
 
 def post_message(writer, email, message):
     query_db(f"INSERT INTO user_messages (writer, email, message) VALUES (?,?,?);", (writer, email, message), commit=True)

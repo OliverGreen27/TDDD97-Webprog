@@ -242,7 +242,7 @@ loadProfileView = function() {
         }));
 	})
 
-    return;
+    
 
 	document.getElementById("reloadbutton").addEventListener("click", function(event) {
 		reloadBoard(document.getElementById("home-message-board"));
@@ -255,10 +255,8 @@ loadProfileView = function() {
 		loadBrowseProfile();
 	})
 	var searchinput = searchform["search-value"];
-	console.log(searchinput);
 	searchinput.addEventListener("input", function(event) {
 		document.getElementById("message5").innerText = "";
-		console.log("JDIFJAIOSDJPIJ");
 	})
 
 
@@ -266,36 +264,67 @@ loadProfileView = function() {
 
 loadBrowseProfile = function() {
 	var searchEmail = document.forms["browse-search"]["search-value"].value;
-    var message = serverstub.getUserDataByEmail(localStorage.getItem("logintoken"), searchEmail)
-	if(!message.success) {
-		document.getElementById("message5").innerText = message.message;
-		document.getElementById("message5").style.color = "red";	
-		return;
-	}
 	document.getElementById("message5").innerText = "";
-	
 	document.getElementById("browse-window").style.display = "block";
 
-	var userData = message.data;
-    // Change the information displayed on the browsepage to the user credentials 
-    document.getElementById('browse-username').innerText = userData.firstname + ' ' + userData.familyname;
-    document.getElementById('browse-gender').innerText = userData.gender;
-    document.getElementById('browse-location').innerText = userData.city + ', ' + userData.country;
-    document.getElementById('browse-email').innerText = userData.email;
+    var userdataRequest = new XMLHttpRequest();
+    var token = localStorage.getItem("logintoken");
+
+    userdataRequest.onreadystatechange = function() {
+        if(this.readyState == 4) {
+            if (this.status == 200){
+                var userData = JSON.parse(userdataRequest.responseText);
+                // Change the information displayed on the homepage to the user credentials 
+                document.getElementById('browse-username').innerText = userData.firstname + ' ' + userData.familyname;
+                document.getElementById('browse-gender').innerText = userData.gender;
+                document.getElementById('browse-location').innerText = userData.city + ', ' + userData.country;
+                document.getElementById('browse-email').innerText = userData.email;
+            } else {
+                document.getElementById("message5").innerText = "User not found.";
+                document.getElementById("message5").style.color = "red";	
+
+            }
+        }
+    }
+
+    userdataRequest.open("GET", "/get_user_data_by_email"+"?email="+searchEmail, true);
+    userdataRequest.setRequestHeader("Content-Type", "application/json");
+    userdataRequest.setRequestHeader("Authorization", token);
+    userdataRequest.send();
+
 	var postmessageform = document.forms["browse-board-text-form"];
 	postmessageform.addEventListener("submit", function(event) {
 		event.preventDefault();
-		postmessageform["comment"].value
-		var message = serverstub.postMessage(localStorage.getItem("logintoken"), postmessageform["comment"].value, searchEmail);
+
 		var messageBox = document.getElementById("message4");
-		if(!message.success) {
-			messageBox.innerText = "There was an error with sending your message.";
-			messageBox.style.color = "red";
-		} else {
-			messageBox.innerText = message.message;
-			messageBox.style.color = "green";
-			reloadBoard(document.getElementById("browse-message-board"), searchEmail);
-		}
+
+        var postmessageRequest = new XMLHttpRequest();
+
+        var token = localStorage.getItem("logintoken");
+        var message = postmessageform["comment"].value;
+
+        postmessageRequest.onreadystatechange = function() {
+            if(this.readyState == 4) {
+
+                if (this.status == 201){
+                    messageBox.innerText = "Message posted.";
+                    messageBox.style.color = "green";
+                    reloadBoard(document.getElementById("browse-message-board"), searchEmail);
+                } else {
+                    messageBox.innerText = "There was an error with sending your message.";
+                    messageBox.style.color = "red";
+                }
+            }
+
+        }
+
+        postmessageRequest.open("POST", "/post_message", true);
+        postmessageRequest.setRequestHeader("Content-Type", "application/json");
+        postmessageRequest.setRequestHeader("Authorization", token);
+        postmessageRequest.send(JSON.stringify({
+            "message" : message,
+            "email" : searchEmail,
+        }));
 	})
 
 	reloadBoard(document.getElementById("browse-message-board"), searchEmail);
@@ -306,7 +335,6 @@ loadBrowseProfile = function() {
 }
 
 reloadBoard = function(board, email=null) {
-    console.log("reloatBoard",board,email)
 	var boardBox = board;
 	boardBox.innerHTML = "";
 	boardBox.innerText = "";
@@ -340,17 +368,12 @@ reloadBoard = function(board, email=null) {
 
 	if(email == null) {
 		reloadBoardRequest.open("GET", "/get_user_messages_by_token", true);
-        reloadBoardRequest.setRequestHeader("Content-Type", "application/json");
-        reloadBoardRequest.setRequestHeader("Authorization", token)
-        reloadBoardRequest.send();
 	} else {
-		reloadBoardRequest.open("GET", "/get_user_messages_by_email", true);
-        reloadBoardRequest.setRequestHeader("Content-Type", "application/json");
-        reloadBoardRequest.setRequestHeader("Authorization", token)
-        reloadBoardRequest.send(JSON.stringify({
-            "email" : email,
-        }));
+		reloadBoardRequest.open("GET", "/get_user_messages_by_email"+"?email="+email, true);
 	}
+    reloadBoardRequest.setRequestHeader("Content-Type", "application/json");
+    reloadBoardRequest.setRequestHeader("Authorization", token)
+    reloadBoardRequest.send();
 }
 
 inputValidation = function(formID) {
