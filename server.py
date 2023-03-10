@@ -196,14 +196,23 @@ def get_user_messages_by_email(email=None, token=None):
 @app.route("/post_message", methods=['POST'])
 def post_message():
     args = request.get_json()
-    if set(args) != {'email', 'message'}:
+
+    print("/post_message:",args)
+
+    if 'message' not in args:
         return {}, 400
+
     token = request.headers.get('Authorization')
     writer = dbh.get_email(token)
     if not writer:
         return {}, 401
 
-    dbh.post_message(writer, args['email'], args['message'])
+    if 'email' in args:
+        email = args['email']
+    else:
+        email = writer
+
+    dbh.post_message(writer, email, args['message'])
 
     return {}, 201
 

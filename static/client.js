@@ -207,23 +207,42 @@ loadProfileView = function() {
     userdataRequest.setRequestHeader("Authorization", token);
     userdataRequest.send();
 
-    return;
 
 	var postmessageform = document.forms["board-text-form"];
 	postmessageform.addEventListener("submit", function(event) {
 		event.preventDefault();
-		postmessageform["comment"].value
-		var message = serverstub.postMessage(localStorage.getItem("logintoken"), postmessageform["comment"].value);
+
 		var messageBox = document.getElementById("message3");
-		if(!message.success) {
-			messageBox.innerText = "There was an error with sending your message.";
-			messageBox.style.color = "red";
-		} else {
-			messageBox.innerText = message.message;
-			messageBox.style.color = "green";
-			reloadBoard(document.getElementById("home-message-board"));
-		}
+
+        var postmessageRequest = new XMLHttpRequest();
+
+        var token = localStorage.getItem("logintoken");
+        var message = postmessageform["comment"].value;
+
+        postmessageRequest.onreadystatechange = function() {
+            if(this.readyState == 4) {
+
+                if (this.status == 201){
+                    messageBox.innerText = "Message posted.";
+                    messageBox.style.color = "green";
+                    reloadBoard(document.getElementById("home-message-board"));
+                } else {
+                    messageBox.innerText = "There was an error with sending your message.";
+                    messageBox.style.color = "red";
+                }
+            }
+
+        }
+
+        postmessageRequest.open("POST", "/post_message", true);
+        postmessageRequest.setRequestHeader("Content-Type", "application/json");
+        postmessageRequest.setRequestHeader("Authorization", token);
+        postmessageRequest.send(JSON.stringify({
+            "message" : message,
+        }));
 	})
+
+    return;
 
 	document.getElementById("reloadbutton").addEventListener("click", function(event) {
 		reloadBoard(document.getElementById("home-message-board"));
@@ -287,31 +306,22 @@ loadBrowseProfile = function() {
 }
 
 reloadBoard = function(board, email=null) {
-
+    console.log("reloatBoard",board,email)
 	var boardBox = board;
 	boardBox.innerHTML = "";
 	boardBox.innerText = "";
-	var messageBoardData;
     var token = localStorage.getItem("logintoken")
+
 	var reloadBoardRequest = new XMLHttpRequest();
-	if(email == null) {
-		reloadBoardRequest.open("GET", "/get_user_messages_by_token", true);
-	} else {
-		reloadBoardRequest.open("GET", "/get_user_messages_by_email", true);
-	}
-	reloadBoardRequest.setRequestHeader("Content-Type", "application/json");
-    reloadBoardRequest.setRequestHeader("Authorization", token)
 
     reloadBoardRequest.onreadystatechange = function() {
         if(this.readyState == 4 && this.status == 200){
-            messageBoardData = reloadBoardRequest.response;
+            var messageBoardData = JSON.parse(reloadBoardRequest.responseText)['messages'];
 
-            console.log(messageBoardData);
-            console.log(boardBox);
-            for(var i = 0; i < messageBoardData.data.length; i++) {
+            for(var i = messageBoardData.length-1; i >=0; i--) {
                 var messageHTML = document.createElement('div');
                 var title = document.createElement('h2')
-                title.innerText = messageBoardData.data[i]["writer"];
+                title.innerText = messageBoardData[i]["writer"];
                 messageHTML.appendChild(title);
 
                 var contentHTML = document.createElement('textarea');
@@ -319,7 +329,7 @@ reloadBoard = function(board, email=null) {
                 contentHTML.setAttribute("rows", "5");
                 contentHTML.setAttribute("max-rows", "5");
                 contentHTML.setAttribute("cols", "50");
-                contentHTML.innerText = messageBoardData.data[i]["content"];
+                contentHTML.innerText = messageBoardData[i]["content"];
                 messageHTML.appendChild(contentHTML);
                 messageHTML.appendChild(document.createElement('br'));
                     
@@ -327,6 +337,20 @@ reloadBoard = function(board, email=null) {
             }
         }
     }
+
+	if(email == null) {
+		reloadBoardRequest.open("GET", "/get_user_messages_by_token", true);
+        reloadBoardRequest.setRequestHeader("Content-Type", "application/json");
+        reloadBoardRequest.setRequestHeader("Authorization", token)
+        reloadBoardRequest.send();
+	} else {
+		reloadBoardRequest.open("GET", "/get_user_messages_by_email", true);
+        reloadBoardRequest.setRequestHeader("Content-Type", "application/json");
+        reloadBoardRequest.setRequestHeader("Authorization", token)
+        reloadBoardRequest.send(JSON.stringify({
+            "email" : email,
+        }));
+	}
 }
 
 inputValidation = function(formID) {
