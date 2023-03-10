@@ -60,7 +60,7 @@ loadWelcomeView = function() {
 
 			loginRequest.onreadystatechange = function() {
 				if(this.readyState == 4 && this.status == 200) {
-                    localStorage.setItem("logintoken", message.data);
+                    localStorage.setItem("logintoken", JSON.parse(loginRequest.responseText)['token']);
                     displayView();
 				}
 			}
@@ -79,7 +79,6 @@ loadWelcomeView = function() {
 		}
 	})
 		
-			
 	loginform.addEventListener("submit", function(event) {
 		event.preventDefault();
 		var loginRequest = new XMLHttpRequest();
@@ -88,7 +87,7 @@ loadWelcomeView = function() {
 			if(this.readyState == 4){
                 switch (this.status) {
                     case 200:
-                        localStorage.setItem("logintoken", message.data);
+                        localStorage.setItem("logintoken", JSON.parse(loginRequest.responseText)['token']);
                         displayView();
                         break;
                     case 400:
@@ -101,7 +100,6 @@ loadWelcomeView = function() {
                         loginform["password"].value = "";
                         loginform["email"].setAttribute("placeholder", "User does not exist.");
                         break;
-
                 }
 			}
 		}
@@ -116,34 +114,63 @@ loadWelcomeView = function() {
 }
 
 loadProfileView = function() {
-	console.log("cookie loaded");
-	console.log(localStorage.getItem("logintoken"));
 	document.getElementById("pagecontent").innerHTML = "";
 	document.getElementById("pagecontent").innerText = "";
 	document.getElementById("pagecontent").innerHTML = document.getElementById("profileview").innerText;
 
 	document.getElementById("defaultOpen").click();
-	reloadBoard(document.getElementById("home-message-board"));
+	// reloadBoard(document.getElementById("home-message-board"));
 
 	// Account page
 	var changepassform = document.forms["changepassform"];
 	changepassform.addEventListener("submit", function(event) {
 		event.preventDefault();
+
+        var token = localStorage.getItem("logintoken")
+        console.log("token",token)
+
 		if (inputValidation("changepassform")) {
-			var message = serverstub.changePassword(localStorage.getItem("logintoken"), changepassform["oldpassword"].value, changepassform["password"].value);
-			changepassform["oldpassword"].value = "";
-			changepassform["password"].value = "";
-			changepassform["password2"].value = "";
+            var oldPassword = changepassform["oldpassword"].value
+            var newPassword = changepassform["password"].value
 			var messageBox = document.getElementById("message2");
-			if(!message.success) {
-				messageBox.style.color = "red";
-			} else {
-				messageBox.style.color = "green";
-			}
-			messageBox.innerText = message.message;
+
+            var changepassRequest = new XMLHttpRequest();
+            changepassRequest.onreadystatechange = function() {
+                if(this.readyState == 4){
+                    changepassform["oldpassword"].value = "";
+                    changepassform["password"].value = "";
+                    changepassform["password2"].value = "";
+                    switch (this.status) {
+                        case 200:
+				            messageBox.style.color = "green";
+                            messageBox.innerText = "Password changed."
+                            break;
+                        case 400:
+				            messageBox.style.color = "red";
+                            messageBox.innerText = "Bad argument."
+                            break;
+                        case 401:
+				            messageBox.style.color = "red";
+                            messageBox.innerText = "Authentication error."
+                            break;
+                        case 404:
+				            messageBox.style.color = "red";
+                            messageBox.innerText = "Wrong password."
+                            break;
+                    }
+                }
+            }
+
+            changepassRequest.open("PUT", "/changepass", true);
+            changepassRequest.setRequestHeader("Content-Type", "application/json");
+            changepassRequest.setRequestHeader("Authorization", token)
+            changepassRequest.send(JSON.stringify({
+                "oldPassword": oldPassword,
+                "newPassword": newPassword,
+            }));
 		}
 	})
-
+    return;
 	document.getElementById("logoutbutton").addEventListener("click", function(event) {
 		var message = serverstub.signOut(localStorage.getItem("logintoken"));
 		if(!message.success) {
@@ -245,30 +272,41 @@ reloadBoard = function(board, email=null) {
 	boardBox.innerHTML = "";
 	boardBox.innerText = "";
 	var messageBoardData;
-	if(email != null) {
-		messageBoardData = serverstub.getUserMessagesByEmail(localStorage.getItem("logintoken"), email);
+    var token = localStorage.getItem("logintoken")
+	var reloadBoardRequest = new XMLHttpRequest();
+	if(email == null) {
+		reloadBoardRequest.open("GET", "/get_user_messages_by_token", true);
 	} else {
-		messageBoardData = serverstub.getUserMessagesByToken(localStorage.getItem("logintoken"));
+		reloadBoardRequest.open("GET", "/get_user_messages_by_email", true);
 	}
-	console.log(messageBoardData.data);
-	console.log(boardBox);
-	for(var i = 0; i < messageBoardData.data.length; i++) {
-		var messageHTML = document.createElement('div');
-		var title = document.createElement('h2')
-		title.innerText = messageBoardData.data[i]["writer"];
-		messageHTML.appendChild(title);
+	reloadBoardRequest.setRequestHeader("Content-Type", "application/json");
+    reloadBoardRequest.setRequestHeader("Authorization", token)
 
-		var contentHTML = document.createElement('textarea');
-		contentHTML.setAttribute("readonly", "");
-		contentHTML.setAttribute("rows", "5");
-		contentHTML.setAttribute("max-rows", "5");
-		contentHTML.setAttribute("cols", "50");
-		contentHTML.innerText = messageBoardData.data[i]["content"];
-		messageHTML.appendChild(contentHTML);
-		messageHTML.appendChild(document.createElement('br'));
-			
-		boardBox.appendChild(messageHTML);
-	}
+    reloadBoardRequest.onreadystatechange = function() {
+        if(this.readyState == 4 && this.status == 200){
+            messageBoardData = reloadBoardRequest.response;
+
+            console.log(messageBoardData);
+            console.log(boardBox);
+            for(var i = 0; i < messageBoardData.data.length; i++) {
+                var messageHTML = document.createElement('div');
+                var title = document.createElement('h2')
+                title.innerText = messageBoardData.data[i]["writer"];
+                messageHTML.appendChild(title);
+
+                var contentHTML = document.createElement('textarea');
+                contentHTML.setAttribute("readonly", "");
+                contentHTML.setAttribute("rows", "5");
+                contentHTML.setAttribute("max-rows", "5");
+                contentHTML.setAttribute("cols", "50");
+                contentHTML.innerText = messageBoardData.data[i]["content"];
+                messageHTML.appendChild(contentHTML);
+                messageHTML.appendChild(document.createElement('br'));
+                    
+                boardBox.appendChild(messageHTML);
+            }
+        }
+    }
 }
 
 inputValidation = function(formID) {
@@ -280,7 +318,11 @@ inputValidation = function(formID) {
             emptyField = true;
 		}
     })
-	return !emptyField && validateEmail(form) && validatePassword(form)
+    if (formID != "changepassform") {
+	    return !emptyField && validateEmail(form) && validatePassword(form)
+    } else {
+        return !emptyField && validatePassword(form)
+    }
 }
 
 function validateEmail(form) {
