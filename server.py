@@ -3,11 +3,40 @@ import hashlib
 import re
 
 from flask import Flask, request
+from flask_sock import Sock
 
 import database_helper as dbh
 
 
 app = Flask(__name__)
+sock = Sock(app)
+
+# websocket rooms
+user_rooms = {}
+
+@sock.route('/ws')
+def handle_connect(ws):
+    # Get the user ID from the session cookie
+    while True:
+        token = ws.receive()
+
+        print("sock token",token)
+
+        user_id = dbh.get_email(token)
+
+        if not user_id:
+            ws.close()
+            return
+
+        # If there's already a user in this room, disconnect them
+        if sock.rooms.get(user_id):
+            user_rooms[user_id].send("You're getting kicked out.")
+            user_rooms[user_id].close()
+
+        # Join the room associated with this user ID
+        ws.join(user_id)
+        user_rooms[user_id] = ws
+
 
 @app.route('/')
 def index():
@@ -17,7 +46,7 @@ def index():
 @app.route('/signin', methods=['POST'])
 def sign_in():
     """
-     Authenticate the username by the provided password.
+        Authenticate the username by the provided password.
     """
 
     args = request.get_json()
@@ -27,7 +56,7 @@ def sign_in():
     
     token = dbh.get_token(args['email'])
     if token:
-        return {"token" : token}, 200
+        dbh.signout(token)
 
     pw_hash = hashlib.sha256((args['password'] + args['email']).encode()).hexdigest()
 

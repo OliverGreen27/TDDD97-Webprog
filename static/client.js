@@ -119,7 +119,18 @@ loadProfileView = function() {
 	document.getElementById("pagecontent").innerHTML = document.getElementById("profileview").innerText;
 
 	document.getElementById("defaultOpen").click();
-	// reloadBoard(document.getElementById("home-message-board"));
+
+    var token = localStorage.getItem("logintoken");
+
+    const socket = new WebSocket('ws://' + location.host + '/ws');
+
+    socket.addEventListener('message', ev => {
+        console.log("Kicked out. User signed in somewhere else.");
+        localStorage.removeItem("logintoken");
+        displayView();
+    });
+    
+    socket.send(token);
 
 	// Account page
 	var changepassform = document.forms["changepassform"];
