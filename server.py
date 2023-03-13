@@ -28,13 +28,10 @@ def handle_connect(ws):
 
         if not user_id:
             ws.send("close")
-        else:
-            # If there's already a user in this room, disconnect them
-            if user_rooms.get(user_id):
-                user_rooms[user_id].send("close")
+            continue
 
-            # Join the room associated with this user ID
-            user_rooms[user_id] = ws
+        # Join the room associated with this user ID
+        user_rooms[user_id] = ws
 
 
 @app.route('/')
@@ -63,10 +60,11 @@ def sign_in():
 
     token = dbh.get_token(email)
     if token:
-        if email in user_rooms:
-            ws = user_rooms.pop(email)
-            ws.send("close")
         dbh.signout(token)
+
+    # If there's already a user in this room, disconnect them
+    if email in user_rooms:
+        user_rooms[email].send("close")
 
     letters = "abcdefghiklmnopqrstuvwwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
     token = ''.join(letters[random.randint(0,len(letters)-1)] for _ in range(36))

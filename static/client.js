@@ -134,9 +134,8 @@ loadProfileView = function() {
     
     socket.addEventListener('open', ev => {
         socket.send(token);
-        console.log("Websocket connected.")
+        console.log("Websocket connected.");
     });
-
 
 	// Account page
 	var changepassform = document.forms["changepassform"];
