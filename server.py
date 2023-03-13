@@ -17,6 +17,8 @@ user_rooms = {}
 @sock.route('/ws')
 def handle_connect(ws):
     # Get the user ID from the session cookie
+    print("websocket call")
+    print(ws)
     while True:
         token = ws.receive()
 
@@ -25,17 +27,14 @@ def handle_connect(ws):
         user_id = dbh.get_email(token)
 
         if not user_id:
-            ws.close()
-            return
+            ws.send("close")
+        else:
+            # If there's already a user in this room, disconnect them
+            if user_rooms.get(user_id):
+                user_rooms[user_id].send("close")
 
-        # If there's already a user in this room, disconnect them
-        if sock.rooms.get(user_id):
-            user_rooms[user_id].send("You're getting kicked out.")
-            user_rooms[user_id].close()
-
-        # Join the room associated with this user ID
-        ws.join(user_id)
-        user_rooms[user_id] = ws
+            # Join the room associated with this user ID
+            user_rooms[user_id] = ws
 
 
 @app.route('/')
@@ -54,20 +53,25 @@ def sign_in():
     if set(args) != {'email', 'password'}:
         return {}, 400
     
-    token = dbh.get_token(args['email'])
-    if token:
-        dbh.signout(token)
+    email = args['email']
 
-    pw_hash = hashlib.sha256((args['password'] + args['email']).encode()).hexdigest()
+    pw_hash = hashlib.sha256((args['password'] + email).encode()).hexdigest()
 
     # TODO: test if empty email and password will sign in
-    if pw_hash != dbh.get_password(args['email']):
+    if pw_hash != dbh.get_password(email):
         return {}, 404
+
+    token = dbh.get_token(email)
+    if token:
+        if email in user_rooms:
+            ws = user_rooms.pop(email)
+            ws.send("close")
+        dbh.signout(token)
 
     letters = "abcdefghiklmnopqrstuvwwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
     token = ''.join(letters[random.randint(0,len(letters)-1)] for _ in range(36))
     
-    dbh.update_logged_in_users(args['email'], token)
+    dbh.update_logged_in_users(email, token)
 
     return {"token" : token}, 200
 
@@ -117,6 +121,9 @@ def sign_out():
     if not email:
         return {}, 404
 
+    if email in user_rooms:
+        ws = user_rooms.get(email)
+        ws.send("close")
     dbh.signout(token)
 
     return {}, 200

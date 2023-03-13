@@ -125,12 +125,18 @@ loadProfileView = function() {
     const socket = new WebSocket('ws://' + location.host + '/ws');
 
     socket.addEventListener('message', ev => {
-        console.log("Kicked out. User signed in somewhere else.");
-        localStorage.removeItem("logintoken");
-        displayView();
+        if (ev.data == "close") {
+            console.log("Kicked out. User signed in somewhere else.");
+            localStorage.removeItem("logintoken");
+            displayView();
+        }
     });
     
-    socket.send(token);
+    socket.addEventListener('open', ev => {
+        socket.send(token);
+        console.log("Websocket connected.")
+    });
+
 
 	// Account page
 	var changepassform = document.forms["changepassform"];
